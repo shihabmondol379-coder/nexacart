@@ -1,0 +1,9 @@
+[
+  {
+    "id": "reward-10",
+    "name": "Reward Card $10",
+    "description": "Instant delivery after payment",
+    "price": 10.5,
+    "image": "https://placehold.co/400x200?text=Reward+Card"
+  }
+]
