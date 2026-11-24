@@ -80,7 +80,7 @@ footer{border-top:1px solid var(--line);padding:36px 7%;display:flex;justify-con
 <section class="hero">
   <div class="badge"><b>&#9679;</b> Instant delivery, 24/7</div>
   <h1>Premium digital goods,<br><span>delivered in seconds.</span></h1>
-  <p>Pay securely with Binance Pay. Your item appears on screen the moment payment is confirmed.</p>
+  <p>Pay securely with crypto (USDT). Your item appears on screen the moment payment is confirmed.</p>
   <a href="#products" class="btn">Browse products</a>
   <div class="stats">
     <div><b>&lt; 60s</b>Average delivery</div>
@@ -105,7 +105,7 @@ footer{border-top:1px solid var(--line);padding:36px 7%;display:flex;justify-con
     <h3 id="mName"></h3>
     <p id="mPrice"></p>
     <p>Your item appears on screen right after payment.</p>
-    <button class="btn" id="payBtn" onclick="pay()">Pay with Binance</button>
+    <button class="btn" id="payBtn" onclick="pay()">Pay with crypto (USDT)</button>
   </div>
 </div>
 
@@ -145,10 +145,10 @@ async function pay(){
   const email = 'x@x.x';
   if(!/^\S+@\S+\.\S+$/.test(email)){ alert('Please enter a valid email'); return; }
   const btn = document.getElementById('payBtn');
-  btn.disabled = true; btn.textContent = 'Opening Binance Pay...';
+  btn.disabled = true; btn.textContent = 'Opening crypto payment...';
   const data = await (await fetch('/api/checkout', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({productId: current.id, email})})).json();
   if(data.checkoutUrl){ localStorage.setItem('lastOrder', JSON.stringify({ order:data.order, token:data.token })); location.href = data.checkoutUrl; }
-  else { alert(data.error || 'Payment could not start'); btn.disabled = false; btn.textContent = 'Pay with Binance'; }
+  else { alert(data.error || 'Payment could not start'); btn.disabled = false; btn.textContent = 'Pay with crypto (USDT)'; }
 }
 function observe(){
   const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('on')), {threshold:.1});
