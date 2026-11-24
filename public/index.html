@@ -80,7 +80,7 @@ footer{border-top:1px solid var(--line);padding:36px 7%;display:flex;justify-con
 <section class="hero">
   <div class="badge"><b>&#9679;</b> Instant delivery, 24/7</div>
   <h1>Premium digital goods,<br><span>delivered in seconds.</span></h1>
-  <p>Pay securely with Binance Pay. Your order lands in your inbox the moment payment is confirmed.</p>
+  <p>Pay securely with Binance Pay. Your item appears on screen the moment payment is confirmed.</p>
   <a href="#products" class="btn">Browse products</a>
   <div class="stats">
     <div><b>&lt; 60s</b>Average delivery</div>
@@ -104,7 +104,7 @@ footer{border-top:1px solid var(--line);padding:36px 7%;display:flex;justify-con
     <span class="close" onclick="closeModal()">&times;</span>
     <h3 id="mName"></h3>
     <p id="mPrice"></p>
-    <input type="email" id="mEmail" placeholder="Email for instant delivery">
+    <p>Your item appears on screen right after payment.</p>
     <button class="btn" id="payBtn" onclick="pay()">Pay with Binance</button>
   </div>
 </div>
@@ -137,17 +137,17 @@ async function loadProducts(){
 function openModal(p){
   current = p;
   document.getElementById('mName').textContent = p.name;
-  document.getElementById('mPrice').textContent = p.price + ' USDT, delivered instantly by email';
+  document.getElementById('mPrice').textContent = p.price + ' USDT, delivered instantly on screen';
   document.getElementById('modal').classList.add('show');
 }
 function closeModal(){ document.getElementById('modal').classList.remove('show'); }
 async function pay(){
-  const email = document.getElementById('mEmail').value.trim();
+  const email = 'x@x.x';
   if(!/^\S+@\S+\.\S+$/.test(email)){ alert('Please enter a valid email'); return; }
   const btn = document.getElementById('payBtn');
   btn.disabled = true; btn.textContent = 'Opening Binance Pay...';
   const data = await (await fetch('/api/checkout', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({productId: current.id, email})})).json();
-  if(data.checkoutUrl){ location.href = data.checkoutUrl; }
+  if(data.checkoutUrl){ localStorage.setItem('lastOrder', JSON.stringify({ order:data.order, token:data.token })); location.href = data.checkoutUrl; }
   else { alert(data.error || 'Payment could not start'); btn.disabled = false; btn.textContent = 'Pay with Binance'; }
 }
 function observe(){
