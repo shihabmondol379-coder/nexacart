@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Admin - NexaCart Shop</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:#07070d;color:#eef0ff;font-family:Inter,sans-serif;padding:40px 20px}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-family:Sora;font-size:28px;margin-bottom:6px}
+.sub{color:#8b8fa8;margin-bottom:24px}
+.card{padding:26px;border-radius:20px;background:#0f0f1a;border:1px solid rgba(255,255,255,.09);margin-bottom:22px}
+h2{font-family:Sora;font-size:18px;margin-bottom:14px}
+label{display:block;font-size:13px;color:#8b8fa8;margin:12px 0 6px}
+input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#07070d;color:#eef0ff;font-size:15px}
+textarea{min-height:140px;font-family:monospace}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{margin-top:16px;padding:13px 22px;border:none;border-radius:10px;background:linear-gradient(135deg,#7c5cff,#00e0c6);color:#fff;font-weight:600;cursor:pointer}
+.del{padding:8px 14px;border:none;border-radius:8px;background:rgba(255,80,80,.15);color:#ff6b6b;cursor:pointer;font-weight:600}
+table{width:100%;border-collapse:collapse}
+td,th{text-align:left;padding:12px 8px;border-bottom:1px solid rgba(255,255,255,.07);font-size:14px}
+th{color:#8b8fa8;font-weight:500}
+.msg{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:10px;display:none}
+.ok{display:block;background:#0d3b35;color:#00e0c6}
+.err{display:block;background:#3b0d0d;color:#ff6b6b}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>NexaCart Shop Admin</h1>
+  <p class="sub">Add products, add stock, delete products.</p>
+
+  <div class="card">
+    <label>Admin key</label>
+    <input type="password" id="key" placeholder="Your ADMIN_KEY">
+  </div>
+
+  <div class="card">
+    <h2>Your products</h2>
+    <table><thead><tr><th>Product</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody id="list"></tbody></table>
+  </div>
+
+  <div class="card">
+    <h2>Add a new product</h2>
+    <div class="row2">
+      <div><label>Name</label><input id="pName" placeholder="Reward Card $10"></div>
+      <div><label>Price (USD)</label><input id="pPrice" type="number" step="0.01" placeholder="10.5"></div>
+    </div>
+    <label>Description</label><input id="pDesc" placeholder="Instant delivery after payment">
+    <label>Image link (optional)</label><input id="pImg" placeholder="https://...">
+    <button class="btn" onclick="addProduct()">Add product</button>
+  </div>
+
+  <div class="card">
+    <h2>Add stock (codes)</h2>
+    <label>Product</label><select id="product"></select>
+    <label>Codes, one per line</label>
+    <textarea id="codes" placeholder="CODE-1111
+CODE-2222"></textarea>
+    <button class="btn" onclick="addCodes()">Add to stock</button>
+  </div>
+</div>
+<div class="msg" id="msg"></div>
+
+<script>
+const keyBox = document.getElementById('key');
+keyBox.value = sessionStorage.getItem('adminKey') || '';
+function key(){ const k = keyBox.value.trim(); sessionStorage.setItem('adminKey', k); return k; }
+function show(text, ok){ const m = document.getElementById('msg'); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = text; setTimeout(() => m.className = 'msg', 3000); }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function api(url, method, body){
+  if(!key()) { show('Enter your admin key first', false); return null; }
+  const res = await fetch(url, { method, headers:{ 'Content-Type':'application/json', 'x-admin-key': key() }, body: body ? JSON.stringify(body) : undefined });
+  if(res.status === 403){ show('Wrong admin key', false); return null; }
+  return res.json();
+}
+
+async function load(){
+  const items = await (await fetch('/api/products')).json();
+  document.getElementById('list').innerHTML = items.length ? items.map(p => `<tr><td>${esc(p.name)}</td><td>$${p.price}</td><td>${p.stock}</td><td><button class="del" onclick="delProduct('${p.id}', '${esc(p.name).replace(/'/g,'')}')">Delete</button></td></tr>`).join('') : '<tr><td colspan="4">No products yet</td></tr>';
+  document.getElementById('product').innerHTML = items.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+}
+
+async function addProduct(){
+  const body = { name: pName.value.trim(), price: pPrice.value, description: pDesc.value.trim(), image: pImg.value.trim() };
+  const r = await api('/api/admin/products', 'POST', body);
+  if(!r) return;
+  if(r.error) return show(r.error, false);
+  show('Product added!', true);
+  pName.value = pPrice.value = pDesc.value = pImg.value = '';
+  load();
+}
+
+async function delProduct(id, name){
+  if(!confirm('Delete "' + name + '" and its unsold codes?')) return;
+  const r = await api('/api/admin/products/' + id, 'DELETE');
+  if(r && r.ok){ show('Product deleted', true); load(); }
+}
+
+async function addCodes(){
+  const list = codes.value.split('\n').map(s => s.trim()).filter(Boolean);
+  if(!list.length) return show('Paste at least one code', false);
+  const r = await api('/api/admin/codes', 'POST', { productId: product.value, list });
+  if(r && r.added){ show(r.added + ' codes added!', true); codes.value = ''; load(); }
+}
+
+load();
+</script>
+</body>
+</html>
