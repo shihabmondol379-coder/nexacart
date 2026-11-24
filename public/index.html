@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexaCart Shop - Premium Digital Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07070d;--card:rgba(255,255,255,.04);--line:rgba(255,255,255,.09);--text:#eef0ff;--muted:#8b8fa8;--a:#7c5cff;--b:#00e0c6;--grad:linear-gradient(135deg,var(--a),var(--b))}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;overflow-x:hidden}
+h1,h2,h3,.logo{font-family:Sora,sans-serif}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);opacity:.35;z-index:-1;animation:float 14s ease-in-out infinite alternate}
+.o1{width:520px;height:520px;background:var(--a);top:-160px;left:-120px}
+.o2{width:460px;height:460px;background:var(--b);bottom:-180px;right:-120px;animation-delay:-7s}
+@keyframes float{to{transform:translate(80px,60px) scale(1.15)}}
+header{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:18px 7%;backdrop-filter:blur(18px);background:rgba(7,7,13,.6);border-bottom:1px solid var(--line)}
+.logo{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.logo span{background:var(--grad);-webkit-background-clip:text;color:transparent}
+nav a{color:var(--muted);text-decoration:none;margin-left:28px;font-size:14px;transition:.2s}
+nav a:hover{color:var(--text)}
+.hero{text-align:center;padding:110px 7% 70px}
+.badge{display:inline-block;padding:7px 16px;border:1px solid var(--line);border-radius:99px;font-size:13px;color:var(--muted);margin-bottom:26px;background:var(--card)}
+.badge b{color:var(--b)}
+.hero h1{font-size:clamp(38px,6vw,72px);font-weight:800;line-height:1.05;letter-spacing:-2px}
+.hero h1 span{background:var(--grad);-webkit-background-clip:text;color:transparent}
+.hero p{max-width:560px;margin:22px auto 36px;color:var(--muted);font-size:18px;line-height:1.6}
+.btn{display:inline-block;padding:15px 34px;border-radius:14px;background:var(--grad);color:#fff;font-weight:600;text-decoration:none;border:none;cursor:pointer;box-shadow:0 10px 40px rgba(124,92,255,.35);transition:.25s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 16px 50px rgba(124,92,255,.5)}
+.btn:disabled{background:#2a2a38;box-shadow:none;cursor:not-allowed}
+.stats{display:flex;justify-content:center;gap:60px;margin-top:60px;flex-wrap:wrap}
+.stats div b{display:block;font-family:Sora;font-size:30px}
+.stats div{color:var(--muted);font-size:14px}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;padding:20px 7% 70px}
+.feat{padding:26px;border:1px solid var(--line);border-radius:20px;background:var(--card)}
+.feat i{font-style:normal;font-size:26px}
+.feat h3{margin:12px 0 6px;font-size:17px}
+.feat p{color:var(--muted);font-size:14px;line-height:1.5}
+.section-title{text-align:center;font-size:36px;letter-spacing:-1px;margin-bottom:10px}
+.section-sub{text-align:center;color:var(--muted);margin-bottom:40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;padding:0 7% 100px}
+.card{position:relative;padding:1px;border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.02));transition:.35s}
+.card:hover{transform:translateY(-6px);background:var(--grad)}
+.inner{background:#0d0d16;border-radius:21px;padding:22px;height:100%;display:flex;flex-direction:column;gap:12px}
+.inner img{width:100%;height:160px;object-fit:cover;border-radius:14px}
+.inner h3{font-size:18px}
+.inner p{color:var(--muted);font-size:14px;flex:1}
+.row{display:flex;justify-content:space-between;align-items:center}
+.price{font-family:Sora;font-size:24px;font-weight:800}
+.stock{font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(0,224,198,.12);color:var(--b)}
+.stock.out{background:rgba(255,80,80,.12);color:#ff6b6b}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:50}
+.modal.show{display:flex}
+.box{width:min(420px,92%);padding:32px;border-radius:24px;background:#0f0f1a;border:1px solid var(--line);animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.92);opacity:0}}
+.box h3{font-size:22px;margin-bottom:6px}
+.box p{color:var(--muted);margin-bottom:20px}
+.box input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:#07070d;color:var(--text);margin-bottom:16px;font-size:15px}
+.box .btn{width:100%}
+.close{float:right;cursor:pointer;color:var(--muted);font-size:22px}
+.fab{position:fixed;right:22px;width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:.2s;z-index:20}
+.fab:hover{transform:scale(1.08)}
+.fab svg{width:28px;height:28px;fill:#fff}
+.wa{bottom:96px;background:#25d366}
+.tg{bottom:26px;background:#229ed9}
+footer{border-top:1px solid var(--line);padding:36px 7%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:14px}
+.reveal{opacity:0;transform:translateY(30px);transition:.8s}
+.reveal.on{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div>
+
+<header>
+  <div class="logo">Nexa<span>Cart</span> Shop</div>
+  <nav><a href="#products">Products</a><a href="#why">Why us</a><a href="#contact">Contact</a></nav>
+</header>
+
+<section class="hero">
+  <div class="badge"><b>&#9679;</b> Instant delivery, 24/7</div>
+  <h1>Premium digital goods,<br><span>delivered in seconds.</span></h1>
+  <p>Pay securely with Binance Pay. Your order lands in your inbox the moment payment is confirmed.</p>
+  <a href="#products" class="btn">Browse products</a>
+  <div class="stats">
+    <div><b>&lt; 60s</b>Average delivery</div>
+    <div><b>24/7</b>Automated store</div>
+    <div><b>100%</b>Secure checkout</div>
+  </div>
+</section>
+
+<section class="features reveal" id="why">
+  <div class="feat"><i>&#9889;</i><h3>Instant delivery</h3><p>Automatic, no waiting for a human to reply.</p></div>
+  <div class="feat"><i>&#128274;</i><h3>Secure payments</h3><p>Every payment is verified with Binance before delivery.</p></div>
+  <div class="feat"><i>&#128172;</i><h3>Real support</h3><p>Talk to us anytime on WhatsApp or Telegram.</p></div>
+</section>
+
+<h2 class="section-title reveal" id="products">Our products</h2>
+<p class="section-sub">Pick an item, pay, and receive it instantly.</p>
+<section class="grid" id="list"></section>
+
+<div class="modal" id="modal">
+  <div class="box">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3 id="mName"></h3>
+    <p id="mPrice"></p>
+    <input type="email" id="mEmail" placeholder="Email for instant delivery">
+    <button class="btn" id="payBtn" onclick="pay()">Pay with Binance</button>
+  </div>
+</div>
+
+<a class="fab wa" href="https://wa.me/8801XXXXXXXXX" target="_blank" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg></a>
+<a class="fab tg" href="https://t.me/YOUR_USERNAME" target="_blank" aria-label="Telegram"><svg viewBox="0 0 24 24"><path d="M21.9 4.3 18.7 19.4c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.3 13 1.5 11.5c-1-.3-1.1-1 .2-1.5L20.6 2.7c.9-.3 1.6.2 1.3 1.6z"/></svg></a>
+
+<footer id="contact">
+  <div>&copy; NexaCart Shop. All rights reserved.</div>
+  <div>Hotline: +880 1XXX-XXXXXX</div>
+</footer>
+
+<script>
+let current = null;
+async function loadProducts(){
+  const items = await (await fetch('/api/products')).json();
+  document.getElementById('list').innerHTML = items.map(p => `
+    <div class="card reveal"><div class="inner">
+      <img src="${p.image}" alt="${p.name}">
+      <h3>${p.name}</h3>
+      <p>${p.description}</p>
+      <div class="row">
+        <span class="price">$${p.price}</span>
+        <span class="stock ${p.stock > 0 ? '' : 'out'}">${p.stock > 0 ? p.stock + ' in stock' : 'Sold out'}</span>
+      </div>
+      <button class="btn" ${p.stock > 0 ? '' : 'disabled'} onclick='openModal(${JSON.stringify(p)})'>Buy now</button>
+    </div></div>`).join('');
+  observe();
+}
+function openModal(p){
+  current = p;
+  document.getElementById('mName').textContent = p.name;
+  document.getElementById('mPrice').textContent = p.price + ' USDT, delivered instantly by email';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+async function pay(){
+  const email = document.getElementById('mEmail').value.trim();
+  if(!/^\S+@\S+\.\S+$/.test(email)){ alert('Please enter a valid email'); return; }
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true; btn.textContent = 'Opening Binance Pay...';
+  const data = await (await fetch('/api/checkout', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({productId: current.id, email})})).json();
+  if(data.checkoutUrl){ location.href = data.checkoutUrl; }
+  else { alert(data.error || 'Payment could not start'); btn.disabled = false; btn.textContent = 'Pay with Binance'; }
+}
+function observe(){
+  const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('on')), {threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+}
+loadProducts();
+</script>
+</body>
+</html>
