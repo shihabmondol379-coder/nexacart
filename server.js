@@ -9,9 +9,11 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const API = 'https://api.nowpayments.io/v1';
-let codes, orders; // MongoDB collections (free Atlas database)
+let codes, orders, productsCol; // MongoDB collections (free Atlas database)
 
-function loadProducts(){ return JSON.parse(fs.readFileSync('products.json','utf8')); }
+// Products live in the database, so you can add and delete them from the admin page
+async function loadProducts(){ return productsCol.find({}, { projection:{ _id:0 } }).sort({ createdAt:1 }).toArray(); }
+function isAdmin(req){ return req.headers['x-admin-key'] === process.env.ADMIN_KEY; }
 
 async function nowpay(path, method = 'GET', body){
   const res = await fetch(API + path, {
@@ -31,7 +33,7 @@ function sortKeys(o){
 
 // Shop page product list with live stock
 app.get('/api/products', async (req, res) => {
-  const list = await Promise.all(loadProducts().map(async p => ({
+  const list = await Promise.all((await loadProducts()).map(async p => ({
     id:p.id, name:p.name, description:p.description, price:p.price, image:p.image,
     stock: await codes.countDocuments({ productId:p.id, sold:false })
   })));
@@ -46,10 +48,28 @@ app.post('/api/admin/codes', async (req, res) => {
   res.json({ added: list.length });
 });
 
+// Admin: add a new product
+app.post('/api/admin/products', async (req, res) => {
+  if(!isAdmin(req)) return res.status(403).json({ error:'Forbidden' });
+  const { name, description, price, image } = req.body;
+  if(!name || !(Number(price) > 0)) return res.json({ error:'Name and a price above 0 are required' });
+  const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + Date.now().toString(36);
+  await productsCol.insertOne({ id, name, description: description || '', price: Number(price), image: image || 'https://placehold.co/400x200?text=' + encodeURIComponent(name), createdAt:new Date() });
+  res.json({ ok:true, id });
+});
+
+// Admin: delete a product and its unsold codes
+app.delete('/api/admin/products/:id', async (req, res) => {
+  if(!isAdmin(req)) return res.status(403).json({ error:'Forbidden' });
+  await productsCol.deleteOne({ id: req.params.id });
+  await codes.deleteMany({ productId: req.params.id, sold:false });
+  res.json({ ok:true });
+});
+
 // Start checkout: create a NOWPayments invoice
 app.post('/api/checkout', async (req, res) => {
   const { productId } = req.body;
-  const product = loadProducts().find(p => p.id === productId);
+  const product = (await loadProducts()).find(p => p.id === productId);
   if(!product) return res.json({ error:'Product not found' });
   if(await codes.countDocuments({ productId, sold:false }) === 0) return res.json({ error:'Out of stock' });
 
@@ -106,16 +126,22 @@ app.get('/api/order-status', async (req, res) => {
   const order = await orders.findOne({ tradeNo: String(req.query.order), token: String(req.query.token) });
   if(!order) return res.json({ status:'not_found' });
   if(order.code){
-    const p = loadProducts().find(x => x.id === order.productId);
+    const p = (await loadProducts()).find(x => x.id === order.productId);
     return res.json({ status:'delivered', product: p ? p.name : '', code: order.code });
   }
   if(order.problem) return res.json({ status:'problem' });
   res.json({ status:'waiting' });
 });
 
-MongoClient.connect(process.env.MONGODB_URI).then(client => {
+MongoClient.connect(process.env.MONGODB_URI).then(async client => {
   const db = client.db('nexacart');
   codes = db.collection('codes');
   orders = db.collection('orders');
+  productsCol = db.collection('products');
+  // First run only: copy the products from products.json into the database
+  if(await productsCol.countDocuments() === 0){
+    const start = JSON.parse(fs.readFileSync('products.json','utf8'));
+    if(start.length) await productsCol.insertMany(start.map(({ codes, ...p }) => ({ ...p, createdAt:new Date() })));
+  }
   app.listen(process.env.PORT || 3000, () => console.log('NexaCart Shop running'));
 });
