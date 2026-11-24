@@ -99,7 +99,13 @@ app.post('/api/binance-webhook', async (req, res) => {
             { returnDocument:'after' }
           );
           const p = loadProducts().find(x => x.id === order.productId);
-          await mailer.sendMail({
+          if(!item){
+            // Paid but no code left: flag the order and alert both shop owner and buyer
+            await orders.updateOne({ _id:order._id }, { $set:{ problem:'out_of_stock' } });
+            await mailer.sendMail({ from: process.env.MAIL_USER, to: process.env.MAIL_USER, subject: 'NexaCart Shop: paid order with no stock ' + order.tradeNo, text: 'Customer ' + order.email + ' paid for ' + p.name + ' but no code was left. Deliver manually or refund.' });
+            await mailer.sendMail({ from: process.env.MAIL_USER, to: order.email, subject: 'Your NexaCart Shop order: ' + p.name, text: 'Payment received. Your item will be sent to you shortly by our team. Need help? Contact us on WhatsApp or Telegram.' });
+          }
+          if(item) await mailer.sendMail({
             from: process.env.MAIL_USER,
             to: order.email,
             subject: 'Your NexaCart Shop order: ' + p.name,
